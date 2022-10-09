@@ -1,0 +1,159 @@
+SELECT * FROM PUBLISHERS
+SELECT * FROM SALES
+SELECT * FROM STORES
+SELECT * FROM AUTHORS
+SELECT * FROM TITLEAUTHOR
+SELECT * FROM TITLES
+SELECT * FROM EMPLOYEE
+SELECT * FROM JOBS
+
+
+1. List of authors whose name begins with the letter A (au_fname).
+
+SELECT A.AU_FNAME || ' ' || A.AU_LNAME "AUTHOR NAME"
+FROM AUTHORS A
+WHERE A.AU_FNAME LIKE '%A%'
+
+
+2. To which author the telephone number 415 935-4228 belongs.
+
+SELECT A.AU_FNAME || ' ' || A.AU_LNAME "AUTHOR NAME", A.PHONE "PHONE NUMBER"
+FROM AUTHORS A
+WHERE A.PHONE = '415 935-4228'
+
+
+3. How many authors does the state of California (CA) have?
+
+SELECT A.STATE "STATE", COUNT(STATE)
+FROM AUTHORS A
+WHERE A.STATE = 'CA'
+GROUP BY A.STATE
+
+
+4. Who is the author of the work “Onions, Leeks, and Garlic: Cooking Secrets of the Mediterranean”.
+
+SELECT A.AU_FNAME || ' ' || A.AU_LNAME "AUTHOR NAME", T.TITLE
+FROM AUTHORS A
+INNER JOIN TITLEAUTHOR TA
+ON A.AU_ID = TA.AU_ID
+INNER JOIN TITLES T
+ON TA.TITLE_ID = T.TITLE_ID
+WHERE T.TITLE = 'Onions, Leeks, and Garlic: Cooking Secrets of the Mediterranean'
+
+
+5. Who is the author with the most titles.
+
+SELECT COUNT(TITLE), A.AU_FNAME, A.AU_LNAME
+FROM AUTHORS A
+INNER JOIN TITLEAUTHOR TA
+ON A.AU_ID = TA.AU_ID
+INNER JOIN TITLES T
+ON TA.TITLE_ID = T.TITLE_ID
+GROUP BY A.AU_FNAME, A.AU_LNAME
+ORDER BY COUNT(TITLE) DESC
+FETCH FIRST 1 ROW ONLY
+
+
+6. List of employees (fname, lname, hire_date) with their corresponding position (job_desc).
+
+SELECT E.FNAME || ' ' || E.LNAME "EMPLOYEE NAME", J.JOB_DESC "JOB", E.HIRE_DATE
+FROM EMPLOYEE E
+INNER JOIN JOBS J
+ON E.JOB_ID = J.JOB_ID
+
+
+7. Who are the employees who work in Boston.
+
+SELECT E.FNAME || ' ' || E.LNAME "EMPLOYEE NAME", P.CITY "CITY"
+FROM EMPLOYEE E
+INNER JOIN PUBLISHERS P
+ON E.PUB_ID = P.PUB_ID
+WHERE P.CITY = 'Boston'
+
+
+8 Who are the 10 employees whom work at the publishing house "Algodata Infosystems" located in Berkeley, CA
+
+SELECT E.FNAME, E.LNAME, P.PUB_NAME, P.CITY, P.STATE
+FROM EMPLOYEE E, PUBLISHERS P
+WHERE P.PUB_NAME = 'Algodata Infosystems' AND P.CITY = 'Berkeley'
+
+
+9 what are the 3 best-selling works?
+
+SELECT S.QTY, T.TITLE
+FROM SALES S
+INNER JOIN TITLES T
+ON S.TITLE_ID = T.TITLE_ID
+ORDER BY S.QTY DESC
+fetch first 3 row only;
+
+
+10 Which store has the least sales.
+
+SELECT SUM(QTY), S.STOR_NAME
+FROM STORES S
+INNER JOIN SALES SA
+ON S.STOR_ID = SA.STOR_ID
+GROUP BY S.STOR_NAME
+ORDER BY SUM(QTY) ASC
+fetch first 1 row only;
+
+
+11. In which store was the work “Emotional Security: A New Algorithm” sold.
+
+SELECT T.TITLE "TITLE", ST.STOR_NAME "STORE NAME"
+FROM STORES ST
+INNER JOIN SALES S
+ON ST.STOR_ID = S.STOR_ID
+INNER JOIN TITLES T
+ON S.TITLE_ID = T.TITLE_ID
+WHERE T.TITLE = 'Emotional Security: A New Algorithm'
+
+
+12. What works were sold in 1994.
+
+SELECT T.TITLE "TITLE", S.ORD_DATE
+FROM SALES S
+INNER JOIN TITLES T
+ON S.TITLE_ID = T.TITLE_ID
+WHERE TO_DATE(S.ORD_DATE, 'MM-DD-YYYY') BETWEEN TO_DATE('1-1-94', 'MM-DD-YYYY') AND TO_DATE('12-31-94', 'MM-DD-YYYY')
+
+
+13. How many works has each author sold.
+
+SELECT SUM(QTY) "WORKS COUNTER", A.AU_LNAME "LAST NAME", A.AU_FNAME "FIRST NAME"
+FROM AUTHORS A
+INNER JOIN TITLEAUTHOR TA
+ON A.AU_ID = TA.AU_ID
+INNER JOIN TITLES T
+ON TA.TITLE_ID = T.TITLE_ID
+INNER JOIN SALES S
+ON T.TITLE_ID = S.TITLE_ID
+GROUP BY A.AU_LNAME, A.AU_FNAME
+ORDER BY SUM(QTY) DESC
+
+
+14. What is the name of the designer who works at the publishing house “Algodata Infosystems”.
+
+SELECT E.LNAME || ' ' || E.FNAME "EMPLOYEE NAME", P.PUB_NAME "PUBLISHER NAME", J.JOB_DESC "JOB"
+FROM PUBLISHERS P
+INNER JOIN EMPLOYEE E
+ON P.PUB_ID = E.PUB_ID
+INNER JOIN JOBS J
+ON E.JOB_ID = J.JOB_ID
+HAVING J.JOB_DESC = 'Designer' AND P.PUB_NAME = 'Algodata Infosystems'
+GROUP BY E.LNAME, E.FNAME, P.PUB_NAME, J.JOB_DESC
+
+
+15. What works has the author Burt Gringlesby written?
+
+SELECT A.AU_FNAME || ' ' || A.AU_LNAME "AUTHOR NAME", T.TITLE, SUM(QTY) "SELLS"
+FROM AUTHORS A
+INNER JOIN TITLEAUTHOR TA
+ON A.AU_ID = TA.AU_ID
+INNER JOIN TITLES T
+ON TA.TITLE_ID = T.TITLE_ID
+INNER JOIN SALES S
+ON T.TITLE_ID = S.TITLE_ID
+WHERE A.AU_FNAME = 'Burt' AND A.AU_LNAME = 'Gringlesby'
+GROUP BY A.AU_LNAME, A.AU_FNAME, T.TITLE
